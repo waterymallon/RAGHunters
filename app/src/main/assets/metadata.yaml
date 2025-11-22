@@ -1,0 +1,52 @@
+description: Ultralytics YOLO11m model trained on /home/yjk/capstone/datasets/coco/coco_custom.yaml
+author: Ultralytics
+date: '2025-11-18T19:15:45.583854'
+version: 8.3.228
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+batch: 1
+imgsz:
+  - 640
+  - 640
+names:
+  0: '01'
+  1: '07'
+  2: '08'
+  3: '19'
+  4: '27'
+  5: '39'
+  6: '42'
+  7: '49'
+  8: '62'
+  9: '66'
+  10: '67'
+  11: '69'
+  12: '70'
+  13: '82'
+  14: '83'
+  15: '84'
+  16: '85'
+  17: '86'
+  18: '87'
+  19: '88'
+  20: '89'
+  21: '91'
+  22: '92'
+  23: '94'
+  24: '95'
+  25: '96'
+  26: bottle
+  27: bowl
+  28: cup
+  29: fork
+  30: knife
+  31: spoon
+args:
+  batch: 1
+  fraction: 1.0
+  half: false
+  int8: true
+  nms: false
+channels: 3

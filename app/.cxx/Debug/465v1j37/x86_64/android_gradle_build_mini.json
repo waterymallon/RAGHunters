@@ -1,0 +1,27 @@
+{
+  "buildFiles": [
+    "C:\\Users\\June\\AndroidStudioProjects\\pub-yolo-android\\app\\src\\main\\cpp\\CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "C:\\Users\\June\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+      "-C",
+      "C:\\Users\\June\\AndroidStudioProjects\\pub-yolo-android\\app\\.cxx\\Debug\\465v1j37\\x86_64",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "C:\\Users\\June\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+    "-C",
+    "C:\\Users\\June\\AndroidStudioProjects\\pub-yolo-android\\app\\.cxx\\Debug\\465v1j37\\x86_64",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "image_processing::@6890427a1f51a3e7e1df": {
+      "artifactName": "image_processing",
+      "abi": "x86_64",
+      "output": "C:\\Users\\June\\AndroidStudioProjects\\pub-yolo-android\\app\\build\\intermediates\\cxx\\Debug\\465v1j37\\obj\\x86_64\\libimage_processing.so",
+      "runtimeFiles": []
+    }
+  }
+}
