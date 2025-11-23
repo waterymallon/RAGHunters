@@ -68,8 +68,10 @@ class YoloDetector(
             imgW = imgH * 3 / 4
         }
         else {
-            imgW = ppImage.width
-            imgH = imgW * 3 / 4
+//            imgW = ppImage.width
+//            imgH = imgW * 3 / 4
+            imgW = bitmap.width
+            imgH = bitmap.height
 
         }
 
