@@ -31,6 +31,17 @@
         android:layout_height="match_parent"
         android:layout_width="match_parent" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/capture_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="120dp"
+        android:contentDescription="Capture and Send to Chatbot"
+        android:src="@android:drawable/ic_menu_camera"
+        app:backgroundTint="@android:color/holo_red_dark"
+        app:tint="@android:color/white" />
+
     <include
         android:id="@+id/bottom_sheet_layout"
         layout="@layout/info_bottom_sheet" />
