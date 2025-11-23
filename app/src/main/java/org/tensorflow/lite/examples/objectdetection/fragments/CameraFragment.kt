@@ -10,12 +10,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.Toast
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Matrix
-import android.graphics.Paint
-import android.graphics.RectF
-import android.graphics.Rect
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
@@ -30,17 +24,21 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.Navigation
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.LinkedList
+
+// 프로젝트 패키지 구조에 따라 import 경로가 다를 수 있습니다.
+// CaptureTransferHelper가 org.tensorflow.lite.examples.objectdetection 패키지에 있다면 import가 필요합니다.
+import org.tensorflow.lite.examples.objectdetection.CaptureTransferHelper
 import org.tensorflow.lite.examples.objectdetection.ObjectDetectorHelper
 import org.tensorflow.lite.examples.objectdetection.R
 import org.tensorflow.lite.examples.objectdetection.SharedViewModel
 import org.tensorflow.lite.examples.objectdetection.databinding.FragmentCameraBinding
 import org.tensorflow.lite.examples.objectdetection.detectors.ObjectDetection
-import com.google.android.material.tabs.TabLayout
-import java.util.LinkedList
 
 class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
 
     private val TAG = "ObjectDetection"
+    private var currentRotation: Int = 0
 
     private var _fragmentCameraBinding: FragmentCameraBinding? = null
     private val fragmentCameraBinding get() = _fragmentCameraBinding!!
@@ -59,6 +57,9 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
     private var lastResults: List<ObjectDetection> = emptyList()
 
     private lateinit var cameraExecutor: ExecutorService
+
+    // [추가] 캡처 및 전송 로직을 담당할 헬퍼 클래스 선언
+    private lateinit var captureTransferHelper: CaptureTransferHelper
 
     override fun onResume() {
         super.onResume()
@@ -87,6 +88,9 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // [추가] 헬퍼 클래스 초기화
+        captureTransferHelper = CaptureTransferHelper(requireContext())
+
         objectDetectorHelper = ObjectDetectorHelper(
             context = requireContext(),
             objectDetectorListener = this
@@ -106,53 +110,30 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
         }
     }
 
+    // [수정됨] 복잡한 로직을 Helper에게 위임하여 코드가 매우 간결해졌습니다.
     private fun captureAndSendToChatbot() {
         if (!::bitmapBuffer.isInitialized) {
             Toast.makeText(context, "카메라가 준비되지 않았습니다.", Toast.LENGTH_SHORT).show()
             return
         }
-
-        // 1. 현재 비트맵 복사 (bitmapBuffer는 계속 갱신되므로 복사본 필요)
-        val capturedBitmap = bitmapBuffer.copy(Bitmap.Config.ARGB_8888, true)
-
-        // 2. 현재 감지된 결과(lastResults)를 문자열로 포맷팅
-        val infoBuilder = StringBuilder()
-        if (lastResults.isEmpty()) {
-            infoBuilder.append("감지된 객체가 없습니다.")
-        } else {
-            infoBuilder.append("감지된 객체 ${lastResults.size}개:\n")
-            for (obj in lastResults) {
-                // 라벨
-                val label = obj.category.label
-                val score = obj.category.confidence
-                // 좌표
-                val box = obj.boundingBox
-                val rectString = String.format("[%.1f, %.1f, %.1f, %.1f]", box.left, box.top, box.right, box.bottom)
-
-                infoBuilder.append("- $label (${String.format("%.0f%%", score * 100)}): $rectString\n")
-            }
-        }
-
-        // 3. 뷰모델에 데이터 저장
-        sharedViewModel.setCaptureData(capturedBitmap, infoBuilder.toString())
-
-        // 4. 챗봇 프래그먼트로 이동
-        // (nav_graph에 action_camera_to_chatbot이 정의되어 있다고 가정)
-        // 만약 액션 ID가 다르다면 R.id.action_camera_to_chatbot 부분을 실제 ID로 변경하세요.
-        try {
-            Navigation.findNavController(requireView())
-                .navigate(R.id.action_camera_to_chatbot)
-
-            val tabLayout = requireActivity().findViewById<TabLayout>(R.id.tab_layout)
-            tabLayout?.getTabAt(1)?.select()
-        } catch (e: Exception) {
-            Log.e(TAG, "Navigation Error: ${e.message}")
-            Toast.makeText(context, "챗봇 화면으로 이동할 수 없습니다.", Toast.LENGTH_SHORT).show()
-        }
+        // 헬퍼 클래스 함수 호출
+        // (박스 그리기, 회전, 텍스트 변환, 뷰모델 저장, 화면 이동을 모두 수행)
+        captureTransferHelper.processAndNavigateToChatbot(
+            bitmapBuffer = bitmapBuffer,
+            currentModel = objectDetectorHelper.currentModel,       // 현재 선택된 모델 ID
+            currentDelegate = objectDetectorHelper.currentDelegate, // 현재 하드웨어 가속 설정
+            threshold = objectDetectorHelper.threshold,             // 임계값
+            numThreads = objectDetectorHelper.numThreads,           // 스레드 수
+            maxResults = objectDetectorHelper.maxResults,           // 최대 결과 수
+            sharedViewModel = sharedViewModel,
+            navController = Navigation.findNavController(requireView()),
+            activity = activity,
+            imageRotation = currentRotation
+        )
     }
 
     private fun initBottomSheetControls() {
-        // ... (기존 코드 유지)
+        // ... (기존 설정 코드 유지)
         fragmentCameraBinding.bottomSheetLayout.thresholdMinus.setOnClickListener {
             if (objectDetectorHelper.threshold >= 0.1) {
                 objectDetectorHelper.threshold -= 0.1f
@@ -270,8 +251,8 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
         image.use {
             bitmapBuffer.copyPixelsFromBuffer(image.planes[0].buffer)
         }
-        val imageRotation = image.imageInfo.rotationDegrees
-        objectDetectorHelper.detect(bitmapBuffer, imageRotation)
+        currentRotation = image.imageInfo.rotationDegrees
+        objectDetectorHelper.detect(bitmapBuffer, currentRotation)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
