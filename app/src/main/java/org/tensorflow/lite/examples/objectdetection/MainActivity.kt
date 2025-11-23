@@ -20,6 +20,8 @@ import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import org.tensorflow.lite.examples.objectdetection.databinding.ActivityMainBinding
+import com.google.android.material.tabs.TabLayout
+import androidx.navigation.fragment.NavHostFragment
 
 /**
  * Main entry point into our app. This app follows the single-activity pattern, and all
@@ -33,6 +35,30 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(activityMainBinding.root)
+
+        // 1. 네비게이션 컨트롤러 가져오기
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.fragment_container) as NavHostFragment
+        val navController = navHostFragment.navController
+
+        // 2. 탭 레이아웃 설정
+        activityMainBinding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                when (tab?.position) {
+                    0 -> {
+                        // 첫 번째 탭: 카메라로 이동
+                        // (이미 카메라면 이동 안 함, 스택 관리 등을 위해 popUpTo 사용 추천)
+                        navController.navigate(R.id.camera_fragment)
+                    }
+                    1 -> {
+                        // 두 번째 탭: 챗봇으로 이동
+                        navController.navigate(R.id.chatbot_fragment)
+                    }
+                }
+            }
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
     }
 
     override fun onBackPressed() {

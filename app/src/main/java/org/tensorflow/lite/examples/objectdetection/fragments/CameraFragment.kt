@@ -307,6 +307,10 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
         imageWidth: Int
     ) {
         activity?.runOnUiThread {
+            if (_fragmentCameraBinding == null) {
+                return@runOnUiThread
+            }
+
             fragmentCameraBinding.bottomSheetLayout.inferenceTimeVal.text =
                             String.format("%d ms", inferenceTime)
 
@@ -324,6 +328,9 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
 
     override fun onError(error: String) {
         activity?.runOnUiThread {
+            if (context == null || _fragmentCameraBinding == null) {
+                return@runOnUiThread
+            }
             Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
         }
     }
