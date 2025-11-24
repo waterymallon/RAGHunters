@@ -10,6 +10,6 @@
 ![KakaoTalk_20251123_222947305](https://github.com/user-attachments/assets/7ea3e615-d0f5-465c-b4c3-9b448334c8e1)
 
 ### 2. 두번째 탭 챗봇
-- 카메라 탭에서 캡처 버큰을 누르면 해당 이미지의 객체 탐지 정보를 챗봇에 넘깁니다. 이는 추후 RAG를 사용해 HSCode 조회에 사용할 예정입니다.
+- 카메라 탭에서 캡처 버튼을 누르면 해당 이미지의 객체 탐지 정보를 챗봇에 넘깁니다. 이는 추후 RAG를 사용해 HSCode 조회에 사용할 예정입니다.
   
 ![KakaoTalk_20251123_235844133](https://github.com/user-attachments/assets/cb6efb66-5a15-4fdb-8f30-b2f9a0d0d7d5)
