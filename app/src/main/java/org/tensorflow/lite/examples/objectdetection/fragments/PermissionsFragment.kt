@@ -24,9 +24,12 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.Navigation
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.launch
 import org.tensorflow.lite.examples.objectdetection.R
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.Lifecycle
 
 private val PERMISSIONS_REQUIRED = arrayOf(Manifest.permission.CAMERA)
 
@@ -37,7 +40,8 @@ private val PERMISSIONS_REQUIRED = arrayOf(Manifest.permission.CAMERA)
 class PermissionsFragment : Fragment() {
 
     private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->
             if (isGranted) {
                 Toast.makeText(context, "Permission request granted", Toast.LENGTH_LONG).show()
@@ -58,15 +62,19 @@ class PermissionsFragment : Fragment() {
             }
             else -> {
                 requestPermissionLauncher.launch(
-                    Manifest.permission.CAMERA)
+                    Manifest.permission.CAMERA
+                )
             }
         }
     }
 
     private fun navigateToCamera() {
-        lifecycleScope.launchWhenStarted {
-            Navigation.findNavController(requireActivity(), R.id.fragment_container).navigate(
-                PermissionsFragmentDirections.actionPermissionsToCamera())
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                findNavController().navigate(
+                    PermissionsFragmentDirections.actionPermissionsToCamera()
+                )
+            }
         }
     }
 

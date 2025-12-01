@@ -7,16 +7,24 @@ import androidx.lifecycle.ViewModel
 
 class SharedViewModel : ViewModel() {
 
-    // 캡처된 이미지
     private val _capturedImage = MutableLiveData<Bitmap?>()
     val capturedImage: LiveData<Bitmap?> = _capturedImage
 
-    // 분석된 텍스트 정보 (라벨, 좌표 등)
-    private val _detectionInfo = MutableLiveData<String>()
-    val detectionInfo: LiveData<String> = _detectionInfo
+    private val _detectionInfo = MutableLiveData<String?>()
+    val detectionInfo: LiveData<String?> = _detectionInfo
 
-    fun setCaptureData(bitmap: Bitmap, info: String) {
+    private val _detectedLabels = MutableLiveData<List<String>?>()
+    val detectedLabels: LiveData<List<String>?> = _detectedLabels
+
+    fun setCaptureData(bitmap: Bitmap, info: String, labels: List<String>) {
         _capturedImage.value = bitmap
         _detectionInfo.value = info
+        _detectedLabels.value = labels
+    }
+
+    fun clearData() {
+        _capturedImage.value = null
+        _detectionInfo.value = null
+        _detectedLabels.value = null
     }
 }

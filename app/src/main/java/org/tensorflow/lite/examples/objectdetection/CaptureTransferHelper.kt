@@ -197,10 +197,11 @@ class CaptureTransferHelper(private val context: Context) {
         // 박스 및 정보 그리기
         val finalBitmap = drawDetectionResult(bitmap, results, debugInfo)
         val infoText = createDetectionInfoText(results, inferenceTime, modelName)
+        val labels = results.map { it.category.label }
 
         // UI 업데이트 및 이동
         Handler(Looper.getMainLooper()).post {
-            sharedViewModel.setCaptureData(finalBitmap, infoText)
+            sharedViewModel.setCaptureData(finalBitmap, infoText, labels)
             navigateToChatbot(navController, activity)
         }
     }

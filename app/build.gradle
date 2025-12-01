@@ -4,6 +4,11 @@ plugins {
     id 'org.jetbrains.kotlin.kapt'
     id 'androidx.navigation.safeargs'
     id 'de.undercouch.download'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.23'
+}
+Properties localProperties = new Properties()
+if (rootProject.file("local.properties").exists()) {
+    localProperties.load(rootProject.file("local.properties").newDataInputStream())
 }
 
 android {
@@ -16,6 +21,7 @@ android {
         targetSdk 33
         versionCode 1
         versionName "1.0.0"
+        buildConfigField("String", "SERVER_IP", localProperties["SERVER_IP"] as String)
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -36,15 +42,22 @@ android {
     buildFeatures {
         viewBinding true
         dataBinding true
+        buildConfig = true
+        compose true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.5.15'
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
+        freeCompilerArgs += ["-P", "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=1.9.24"]
     }
 
     buildTypes {
@@ -131,5 +144,16 @@ dependencies {
 
     implementation 'org.yaml:snakeyaml:1.29'
 
+    // Kotlin serialization
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1'
 
+    // Jetpack Compose
+    def compose_version = "1.6.8"
+    implementation "androidx.compose.ui:ui:$compose_version"
+    implementation "androidx.compose.material3:material3:1.2.1"
+    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
+    implementation "androidx.activity:activity-compose:1.9.1"
+    implementation "androidx.compose.runtime:runtime-livedata:1.6.8"
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
+    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
 }
