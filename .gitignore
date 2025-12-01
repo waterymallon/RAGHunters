@@ -12,6 +12,9 @@
 .gradle/
 build/
 
+# ignore .cxx filder
+.cxx/
+
 # Android Studio generated files
 bin/
 gen/
