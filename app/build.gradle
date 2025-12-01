@@ -21,9 +21,11 @@ android {
         targetSdk 33
         versionCode 1
         versionName "1.0.0"
-        buildConfigField("String", "SERVER_IP", localProperties["SERVER_IP"] as String)
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        def serverIp = localProperties.getProperty('SERVER_IP') ?: "127.0.0.1"
+        buildConfigField "String", "SERVER_IP", "\"${serverIp}\""
 
         // for compiling native source
         externalNativeBuild {

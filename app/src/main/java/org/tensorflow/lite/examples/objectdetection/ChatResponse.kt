@@ -29,19 +29,19 @@ data class ChatResponse(
 @SuppressLint("UnsafeOptInUsageError")
 @Serializable
 data class TariffInfo(
-    @SerialName("item_number")
+    @SerialName("품목번호")
     val itemNumber: String? = null,
 
-    @SerialName("item_name")
+    @SerialName("품명")
     val itemName: String? = null,
-    
-    @SerialName("symbol")
+
+    @SerialName("구분기호")
     val symbol: String? = null,
 
-    @SerialName("rate")
+    @SerialName("관세율")
     val rate: String? = null,
 
-    @SerialName("unit_tax")
+    @SerialName("단위당세액")
     val unitTax: String? = null
 )
 
