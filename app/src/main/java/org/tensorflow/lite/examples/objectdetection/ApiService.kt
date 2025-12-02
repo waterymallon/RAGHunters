@@ -13,7 +13,7 @@ object ApiService {
 
     // NOTE: 10.0.2.2 is the special IP address for the host machine's localhost
     // when running the app in the Android emulator.
-    private val API_URL = "http://${BuildConfig.SERVER_IP}:5000/ask"
+    private val API_URL = "${BuildConfig.SERVER_IP}/ask"
 
     // Configure a lenient Json parser
     private val json = Json {
