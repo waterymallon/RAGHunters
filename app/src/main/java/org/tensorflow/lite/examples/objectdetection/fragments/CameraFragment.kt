@@ -179,7 +179,7 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
                 }
                 override fun onNothingSelected(p0: AdapterView<*>?) {}
             }
-        fragmentCameraBinding.bottomSheetLayout.spinnerModel.setSelection(0, false)
+        fragmentCameraBinding.bottomSheetLayout.spinnerModel.setSelection(4, false)
         fragmentCameraBinding.bottomSheetLayout.spinnerModel.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
