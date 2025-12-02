@@ -12,85 +12,85 @@ imgsz:
   - 320
 names:
   0: person
-  1: bicycle
-  2: car
-  3: motorcycle
-  4: airplane
-  5: bus
-  6: train
-  7: truck
-  8: boat
-  9: traffic light
-  10: fire hydrant
-  11: stop sign
-  12: parking meter
-  13: bench
-  14: bird
-  15: cat
-  16: dog
-  17: horse
-  18: sheep
-  19: cow
-  20: elephant
-  21: bear
-  22: zebra
-  23: giraffe
-  24: backpack
-  25: umbrella
-  26: handbag
-  27: tie
-  28: suitcase
-  29: frisbee
-  30: skis
-  31: snowboard
-  32: sports ball
-  33: kite
-  34: baseball bat
-  35: baseball glove
-  36: skateboard
-  37: surfboard
-  38: tennis racket
-  39: bottle
-  40: wine glass
-  41: cup
-  42: fork
-  43: knife
-  44: spoon
-  45: bowl
-  46: banana
-  47: apple
-  48: sandwich
-  49: orange
-  50: broccoli
-  51: carrot
-  52: hot dog
-  53: pizza
-  54: donut
-  55: cake
-  56: chair
-  57: couch
-  58: potted plant
-  59: bed
-  60: dining table
-  61: toilet
-  62: tv
-  63: laptop
-  64: mouse
-  65: remote
-  66: keyboard
-  67: cell phone
-  68: microwave
-  69: oven
-  70: toaster
-  71: sink
-  72: refrigerator
-  73: book
-  74: clock
-  75: vase
-  76: scissors
-  77: teddy bear
-  78: hair drier
-  79: toothbrush
+  1: bicycle_87
+  2: car_87
+  3: motorcycle_87
+  4: airplane_88
+  5: bus_87
+  6: train_86
+  7: truck_87
+  8: boat_89
+  9: traffic light_85
+  10: fire hydrant_84
+  11: stop sign_83
+  12: parking meter_91
+  13: bench_94
+  14: bird_01
+  15: cat_01
+  16: dog_01
+  17: horse_01
+  18: sheep_01
+  19: cow_01
+  20: elephant_01
+  21: bear_01
+  22: zebra_01
+  23: giraffe_01
+  24: backpack_42
+  25: umbrella_6601
+  26: handbag_42
+  27: tie_62
+  28: suitcase_42
+  29: frisbee_95
+  30: skis_95
+  31: snowboard_95
+  32: sports ball_95
+  33: kite_95
+  34: baseball bat_95
+  35: baseball glove_42
+  36: skateboard_95
+  37: surfboard_95
+  38: tennis racket_95
+  39: bottle_39
+  40: wine glass_70
+  41: cup_70
+  42: fork_82
+  43: knife_82
+  44: spoon_82
+  45: bowl_44
+  46: banana_08
+  47: apple_08
+  48: sandwich_19
+  49: orange_08
+  50: broccoli_07
+  51: carrot_07
+  52: hot dog_19
+  53: pizza_19
+  54: donut_19
+  55: cake_19
+  56: chair_94
+  57: couch_94
+  58: potted plant_67
+  59: bed_94
+  60: dining table_94
+  61: toilet_69
+  62: tv_85
+  63: laptop_84
+  64: mouse_84
+  65: remote_85
+  66: keyboard_92
+  67: cell phone_42
+  68: microwave_85
+  69: oven_85
+  70: toaster_85
+  71: sink_39
+  72: refrigerator_84
+  73: book_49
+  74: clock_91
+  75: vase_27
+  76: scissors_82
+  77: teddy bear_95
+  78: hair drier_85
+  79: toothbrush_96
 args:
   batch: 1
   half: false

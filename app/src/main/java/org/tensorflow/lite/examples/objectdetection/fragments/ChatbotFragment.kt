@@ -1,6 +1,5 @@
 package org.tensorflow.lite.examples.objectdetection.fragments
 
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -28,12 +27,22 @@ import org.tensorflow.lite.examples.objectdetection.ReferenceDoc
 import org.tensorflow.lite.examples.objectdetection.SharedViewModel
 import org.tensorflow.lite.examples.objectdetection.TariffInfo
 
+
+// Sealed class to represent different message types in the chat
+sealed class ChatMessage {
+    data class UserQuestion(val question: String) : ChatMessage()
+    data class BotResponse(val response: ChatResponse) : ChatMessage()
+    data class Error(val message: String) : ChatMessage()
+    object Loading : ChatMessage()
+}
+
 class ChatbotFragment : Fragment() {
 
     private val sharedViewModel: SharedViewModel by activityViewModels()
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
@@ -50,25 +59,21 @@ class ChatbotFragment : Fragment() {
 fun ChatScreen(sharedViewModel: SharedViewModel) {
     val capturedImage by sharedViewModel.capturedImage.observeAsState()
     val detectedLabels by sharedViewModel.detectedLabels.observeAsState()
-
-    var chatResponse by remember { mutableStateOf<ChatResponse?>(null) }
-    var isLoading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var text by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
 
+    var chatHistory by remember { mutableStateOf<List<ChatMessage>>(emptyList()) }
+
     fun handleAsk(question: String) {
-        if (question.isNotBlank() && !isLoading) {
+        if (question.isNotBlank() && chatHistory.lastOrNull() !is ChatMessage.Loading) {
             coroutineScope.launch {
-                isLoading = true
-                errorMessage = null
-                chatResponse = null // Clear previous response
+                chatHistory = chatHistory + ChatMessage.UserQuestion(question) + ChatMessage.Loading
                 val result = ApiService.askQuestion(question)
                 result.onSuccess { response ->
-                    chatResponse = response
+                    chatHistory = chatHistory.dropLast(1) + ChatMessage.BotResponse(response)
                 }.onFailure { error ->
-                    errorMessage = "An error occurred: ${error.message}"
+                    chatHistory = chatHistory.dropLast(1) + ChatMessage.Error("An error occurred: ${error.message}")
                 }
-                isLoading = false
             }
         }
     }
@@ -99,41 +104,106 @@ fun ChatScreen(sharedViewModel: SharedViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        if (isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                errorMessage?.let {
-                    item { ErrorCard(it) }
-                }
-                chatResponse?.let { response ->
-                    if (response.explanation != null) {
-                        item { InfoCard("Explanation", response.explanation) }
-                    }
-                    if (response.preliminaryHsCode != null) {
-                        item {
-                            InfoCard(
-                                "Preliminary Classification",
-                                "HS Code: ${response.preliminaryHsCode}\nReason: ${response.preliminaryReason ?: "N/A"}"
-                            )
+        // Chat history
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(chatHistory) { message ->
+                when (message) {
+                    is ChatMessage.UserQuestion -> UserQuestionCard(message.question)
+                    is ChatMessage.BotResponse -> BotResponseCards(message.response)
+                    is ChatMessage.Error -> ErrorCard(message.message)
+                    is ChatMessage.Loading -> {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
                         }
-                    }
-                    if (!response.tariffInfo.isNullOrEmpty()) {
-                        item { TariffInfoCard(response.effectiveHsCode, response.tariffInfo) }
-                    }
-                    if (!response.referenceDocs.isNullOrEmpty()) {
-                        item { ReferenceDocsCard(response.referenceDocs) }
                     }
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Input field
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextField(
+                value = text,
+                onValueChange = { text = it },
+                modifier = Modifier.weight(1f),
+                placeholder = { Text("Ask a question") },
+                singleLine = true
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(
+                onClick = {
+                    if (text.isNotBlank()) {
+                        handleAsk(text)
+                        text = "" // Clear after sending
+                    }
+                },
+                enabled = chatHistory.lastOrNull() !is ChatMessage.Loading
+            ) {
+                Text("Send")
+            }
+        }
     }
 }
+
+@Composable
+fun UserQuestionCard(question: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(0.8f),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        ) {
+            Text(
+                text = question,
+                modifier = Modifier.padding(16.dp),
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+    }
+}
+
+@Composable
+fun BotResponseCards(response: ChatResponse) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(0.8f),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            if (response.explanation != null) {
+                InfoCard("Explanation", response.explanation)
+            }
+            if (response.preliminaryHsCode != null) {
+                InfoCard(
+                    "Preliminary Classification",
+                    "HS Code: ${response.preliminaryHsCode}\nReason: ${response.preliminaryReason ?: "N/A"}"
+                )
+            }
+            if (!response.tariffInfo.isNullOrEmpty()) {
+                TariffInfoCard(response.effectiveHsCode, response.tariffInfo)
+            }
+            if (!response.referenceDocs.isNullOrEmpty()) {
+                ReferenceDocsCard(response.referenceDocs)
+            }
+        }
+    }
+}
+
 
 @Composable
 fun ErrorCard(message: String) {

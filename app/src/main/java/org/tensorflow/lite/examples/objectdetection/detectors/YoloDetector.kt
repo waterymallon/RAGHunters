@@ -30,8 +30,8 @@ class YoloDetector(
 
         // val modelPath = "YOLO11n-catsdogs_float32.tflite"
         // val metadataPath = "metadata-catsdogs.yaml"
-        val modelPath = "best_int8.tflite"
-        val metadataPath = "metadata.yaml"
+        val modelPath = "yolo11n_float32.tflite"
+        val metadataPath = "coco_metadata.yaml"
 
         val config = LocalYoloModel(
             "detect",
