@@ -16,6 +16,7 @@
 -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/camera_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -24,7 +25,7 @@
         android:id="@+id/view_finder"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:scaleType="fillStart"/>
+        app:scaleType="fillStart" />
 
     <org.tensorflow.lite.examples.objectdetection.OverlayView
         android:id="@+id/overlay"
@@ -36,13 +37,234 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="120dp"
+        android:layout_marginBottom="32dp"
         android:contentDescription="Capture and Send to Chatbot"
         android:src="@android:drawable/ic_menu_camera"
         app:backgroundTint="@android:color/holo_red_dark"
         app:tint="@android:color/white" />
 
-    <include
-        android:id="@+id/bottom_sheet_layout"
-        layout="@layout/info_bottom_sheet" />
+    <ImageButton
+        android:id="@+id/settings_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_margin="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:padding="8dp"
+        android:src="@drawable/ic_plus" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/settings_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:background="@color/bottom_sheet_background"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Inference time row -->
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/inference_time_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:text="@string/label_interence_time"
+                    android:textColor="@color/bottom_sheet_text_color"
+                    android:textSize="@dimen/bottom_sheet_text_size" />
+                <TextView
+                    android:id="@+id/inference_time_val"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:layout_centerVertical="true"
+                    android:textColor="@color/bottom_sheet_text_color"
+                    android:textSize="@dimen/bottom_sheet_text_size"
+                    tools:text="8ms" />
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <!-- ML confidence threshold adjustment row -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/bottom_sheet_default_row_margin"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:text="@string/label_confidence_threshold"
+                    android:textColor="@color/bottom_sheet_text_color"
+                    android:textSize="@dimen/bottom_sheet_text_size" />
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/threshold_minus"
+                        android:layout_width="@dimen/bottom_sheet_control_btn_size"
+                        android:layout_height="@dimen/bottom_sheet_control_btn_size"
+                        android:contentDescription="@string/alt_bottom_sheet_threshold_button_minus"
+                        android:src="@drawable/ic_minus" />
+
+                    <TextView
+                        android:id="@+id/threshold_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/bottom_sheet_control_text_side_margin"
+                        android:layout_marginEnd="@dimen/bottom_sheet_control_text_side_margin"
+                        android:gravity="center"
+                        android:minEms="@integer/bottom_sheet_control_text_min_ems"
+                        android:textColor="@color/bottom_sheet_text_color"
+                        android:textSize="@dimen/bottom_sheet_text_size"
+                        tools:text="0.50" />
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/threshold_plus"
+                        android:layout_width="@dimen/bottom_sheet_control_btn_size"
+                        android:layout_height="@dimen/bottom_sheet_control_btn_size"
+                        android:contentDescription="@string/alt_bottom_sheet_threshold_button_plus"
+                        android:src="@drawable/ic_plus" />
+                </LinearLayout>
+            </RelativeLayout>
+
+            <!-- ML max results adjustment row -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/bottom_sheet_default_row_margin"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:text="@string/label_max_results"
+                    android:textColor="@color/bottom_sheet_text_color"
+                    android:textSize="@dimen/bottom_sheet_text_size" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/max_results_minus"
+                        android:layout_width="@dimen/bottom_sheet_control_btn_size"
+                        android:layout_height="@dimen/bottom_sheet_control_btn_size"
+                        android:contentDescription="@string/alt_bottom_sheet_max_results_button_minus"
+                        android:src="@drawable/ic_minus" />
+                    <TextView
+                        android:id="@+id/max_results_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:layout_marginStart="@dimen/bottom_sheet_control_text_side_margin"
+                        android:layout_marginEnd="@dimen/bottom_sheet_control_text_side_margin"
+                        android:minEms="@integer/bottom_sheet_control_text_min_ems"
+                        android:textColor="@color/bottom_sheet_text_color"
+                        android:textSize="@dimen/bottom_sheet_text_size"
+                        tools:text="3" />
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/max_results_plus"
+                        android:layout_width="@dimen/bottom_sheet_control_btn_size"
+                        android:layout_height="@dimen/bottom_sheet_control_btn_size"
+                        android:contentDescription="@string/alt_bottom_sheet_max_results_button_plus"
+                        android:src="@drawable/ic_plus" />
+                </LinearLayout>
+            </RelativeLayout>
+
+            <!-- Number of threads adjustment row -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/bottom_sheet_default_row_margin"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:text="@string/label_threads"
+                    android:textColor="@color/bottom_sheet_text_color"
+                    android:textSize="@dimen/bottom_sheet_text_size" />
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/threads_minus"
+                        android:layout_width="@dimen/bottom_sheet_control_btn_size"
+                        android:layout_height="@dimen/bottom_sheet_control_btn_size"
+                        android:contentDescription="@string/alt_bottom_sheet_thread_button_minus"
+                        android:src="@drawable/ic_minus" />
+
+                    <TextView
+                        android:id="@+id/threads_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/bottom_sheet_control_text_side_margin"
+                        android:layout_marginEnd="@dimen/bottom_sheet_control_text_side_margin"
+                        android:gravity="center"
+                        android:minEms="@integer/bottom_sheet_control_text_min_ems"
+                        android:textColor="@color/bottom_sheet_text_color"
+                        android:textSize="@dimen/bottom_sheet_text_size"
+                        tools:text="2" />
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/threads_plus"
+                        android:layout_width="@dimen/bottom_sheet_control_btn_size"
+                        android:layout_height="@dimen/bottom_sheet_control_btn_size"
+                        android:contentDescription="@string/alt_bottom_sheet_thread_button_plus"
+                        android:src="@drawable/ic_plus" />
+                </LinearLayout>
+            </RelativeLayout>
+
+            <!-- Delegate selection row -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/bottom_sheet_default_row_margin">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_delegate"
+                    android:textColor="@color/bottom_sheet_text_color"
+                    android:textSize="@dimen/bottom_sheet_text_size" />
+
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/spinner_delegate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:entries="@array/delegate_spinner_titles"
+                    android:minWidth="@dimen/bottom_sheet_spinner_delegate_min_width"
+                    android:spinnerMode="dropdown"
+                    android:theme="@style/BottomSheetSpinnerItemStyle" />
+
+            </RelativeLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

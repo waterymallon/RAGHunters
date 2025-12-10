@@ -104,6 +104,14 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
 
         initBottomSheetControls()
 
+        fragmentCameraBinding.settingsButton.setOnClickListener {
+            if (fragmentCameraBinding.settingsPanel.visibility == View.VISIBLE) {
+                fragmentCameraBinding.settingsPanel.visibility = View.GONE
+            } else {
+                fragmentCameraBinding.settingsPanel.visibility = View.VISIBLE
+            }
+        }
+
         // 캡처 버튼 리스너 설정
         fragmentCameraBinding.captureButton.setOnClickListener {
             captureAndSendToChatbot()
@@ -133,44 +141,44 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
 
     private fun initBottomSheetControls() {
         // ... (기존 설정 코드 유지)
-        fragmentCameraBinding.bottomSheetLayout.thresholdMinus.setOnClickListener {
+        fragmentCameraBinding.thresholdMinus.setOnClickListener {
             if (objectDetectorHelper.threshold >= 0.1) {
                 objectDetectorHelper.threshold -= 0.1f
                 updateControlsUi()
             }
         }
-        fragmentCameraBinding.bottomSheetLayout.thresholdPlus.setOnClickListener {
+        fragmentCameraBinding.thresholdPlus.setOnClickListener {
             if (objectDetectorHelper.threshold <= 0.8) {
                 objectDetectorHelper.threshold += 0.1f
                 updateControlsUi()
             }
         }
-        fragmentCameraBinding.bottomSheetLayout.maxResultsMinus.setOnClickListener {
+        fragmentCameraBinding.maxResultsMinus.setOnClickListener {
             if (objectDetectorHelper.maxResults > 1) {
                 objectDetectorHelper.maxResults--
                 updateControlsUi()
             }
         }
-        fragmentCameraBinding.bottomSheetLayout.maxResultsPlus.setOnClickListener {
+        fragmentCameraBinding.maxResultsPlus.setOnClickListener {
             if (objectDetectorHelper.maxResults < 5) {
                 objectDetectorHelper.maxResults++
                 updateControlsUi()
             }
         }
-        fragmentCameraBinding.bottomSheetLayout.threadsMinus.setOnClickListener {
+        fragmentCameraBinding.threadsMinus.setOnClickListener {
             if (objectDetectorHelper.numThreads > 1) {
                 objectDetectorHelper.numThreads--
                 updateControlsUi()
             }
         }
-        fragmentCameraBinding.bottomSheetLayout.threadsPlus.setOnClickListener {
+        fragmentCameraBinding.threadsPlus.setOnClickListener {
             if (objectDetectorHelper.numThreads < 4) {
                 objectDetectorHelper.numThreads++
                 updateControlsUi()
             }
         }
-        fragmentCameraBinding.bottomSheetLayout.spinnerDelegate.setSelection(0, false)
-        fragmentCameraBinding.bottomSheetLayout.spinnerDelegate.onItemSelectedListener =
+        fragmentCameraBinding.spinnerDelegate.setSelection(0, false)
+        fragmentCameraBinding.spinnerDelegate.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
                     objectDetectorHelper.currentDelegate = p2
@@ -182,11 +190,11 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
     }
 
     private fun updateControlsUi() {
-        fragmentCameraBinding.bottomSheetLayout.maxResultsValue.text =
+        fragmentCameraBinding.maxResultsValue.text =
             objectDetectorHelper.maxResults.toString()
-        fragmentCameraBinding.bottomSheetLayout.thresholdValue.text =
+        fragmentCameraBinding.thresholdValue.text =
             String.format("%.2f", objectDetectorHelper.threshold)
-        fragmentCameraBinding.bottomSheetLayout.threadsValue.text =
+        fragmentCameraBinding.threadsValue.text =
             objectDetectorHelper.numThreads.toString()
 
         objectDetectorHelper.clearObjectDetector()
@@ -263,7 +271,7 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
         activity?.runOnUiThread {
             if (_fragmentCameraBinding == null) return@runOnUiThread
 
-            fragmentCameraBinding.bottomSheetLayout.inferenceTimeVal.text =
+            fragmentCameraBinding.inferenceTimeVal.text =
                 String.format("%d ms", inferenceTime)
 
             fragmentCameraBinding.overlay.setResults(
