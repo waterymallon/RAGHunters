@@ -120,7 +120,6 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
         // (박스 그리기, 회전, 텍스트 변환, 뷰모델 저장, 화면 이동을 모두 수행)
         captureTransferHelper.processAndNavigateToChatbot(
             bitmapBuffer = bitmapBuffer,
-            currentModel = objectDetectorHelper.currentModel,       // 현재 선택된 모델 ID
             currentDelegate = objectDetectorHelper.currentDelegate, // 현재 하드웨어 가속 설정
             threshold = objectDetectorHelper.threshold,             // 임계값
             numThreads = objectDetectorHelper.numThreads,           // 스레드 수
@@ -179,15 +178,7 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
                 }
                 override fun onNothingSelected(p0: AdapterView<*>?) {}
             }
-        fragmentCameraBinding.bottomSheetLayout.spinnerModel.setSelection(4, false)
-        fragmentCameraBinding.bottomSheetLayout.spinnerModel.onItemSelectedListener =
-            object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
-                    objectDetectorHelper.currentModel = p2
-                    updateControlsUi()
-                }
-                override fun onNothingSelected(p0: AdapterView<*>?) {}
-            }
+
     }
 
     private fun updateControlsUi() {

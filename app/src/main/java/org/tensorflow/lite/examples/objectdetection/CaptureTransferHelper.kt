@@ -20,12 +20,11 @@ class CaptureTransferHelper(private val context: Context) {
 
     // [중요] strings.xml의 모델 순서에 맞춰 YOLO의 인덱스를 지정하세요.
     // 기존 0~3번이 구글 모델이고, 4번째에 Yolo v11을 추가했다고 가정합니다.
-    private val MODEL_YOLO_INDEX = 4
+
 
     fun processAndNavigateToChatbot(
         bitmapBuffer: Bitmap,
         imageRotation: Int,
-        currentModel: Int,
         currentDelegate: Int,
         threshold: Float,
         numThreads: Int,
@@ -39,40 +38,22 @@ class CaptureTransferHelper(private val context: Context) {
         // 1. 이미지 물리적 회전 (정방향 만들기)
         val uprightBitmap = rotateBitmap(bitmapBuffer, imageRotation.toFloat())
 
-        // 2. 모델 선택에 따른 분기 처리
-        if (currentModel == MODEL_YOLO_INDEX) {
-            // === [A] YOLO 모델 사용 시 ===
-            runYoloAnalysis(
-                bitmap = uprightBitmap,
-                currentModel = currentModel,
-                currentDelegate = currentDelegate,
-                threshold = threshold,
-                numThreads = numThreads,
-                maxResults = maxResults,
-                sharedViewModel = sharedViewModel,
-                navController = navController,
-                activity = activity
-            )
-        } else {
-            // === [B] 기존 Google 예제 모델 사용 시 ===
-            runStandardAnalysis(
-                bitmap = uprightBitmap,
-                currentModel = currentModel,
-                currentDelegate = currentDelegate,
-                threshold = threshold,
-                numThreads = numThreads,
-                maxResults = maxResults,
-                sharedViewModel = sharedViewModel,
-                navController = navController,
-                activity = activity
-            )
-        }
+        // 2. YOLO 모델 사용
+        runYoloAnalysis(
+            bitmap = uprightBitmap,
+            currentDelegate = currentDelegate,
+            threshold = threshold,
+            numThreads = numThreads,
+            maxResults = maxResults,
+            sharedViewModel = sharedViewModel,
+            navController = navController,
+            activity = activity
+        )
     }
 
     // --- [A] 커스텀 YOLO 분석 로직 ---
     private fun runYoloAnalysis(
         bitmap: Bitmap,
-        currentModel: Int,
         currentDelegate: Int,
         threshold: Float,
         numThreads: Int,
@@ -95,7 +76,6 @@ class CaptureTransferHelper(private val context: Context) {
                     numThreads = numThreads,
                     maxResults = maxResults,
                     currentDelegate = currentDelegate,
-                    currentModel = currentModel,
                     context = context
                 )
 
@@ -113,7 +93,6 @@ class CaptureTransferHelper(private val context: Context) {
                     bitmap = bitmap,
                     results = detections,
                     inferenceTime = inferenceTime,
-                    currentModel = currentModel,
                     currentDelegate = currentDelegate,
                     sharedViewModel = sharedViewModel,
                     navController = navController,
@@ -129,68 +108,19 @@ class CaptureTransferHelper(private val context: Context) {
         }.start()
     }
 
-    // --- [B] 기존 Standard (ObjectDetectorHelper) 분석 로직 ---
-    private fun runStandardAnalysis(
-        bitmap: Bitmap,
-        currentModel: Int,
-        currentDelegate: Int,
-        threshold: Float,
-        numThreads: Int,
-        maxResults: Int,
-        sharedViewModel: SharedViewModel,
-        navController: NavController,
-        activity: Activity?
-    ) {
-        val staticDetector = ObjectDetectorHelper(
-            context = context,
-            objectDetectorListener = object : ObjectDetectorHelper.DetectorListener {
-                override fun onError(error: String) {
-                    Log.e(TAG, "Standard Analysis failed: $error")
-                }
 
-                override fun onResults(
-                    results: List<ObjectDetection>,
-                    inferenceTime: Long,
-                    imageHeight: Int,
-                    imageWidth: Int
-                ) {
-                    handleAnalysisResult(
-                        bitmap = bitmap,
-                        results = results ?: emptyList(),
-                        inferenceTime = inferenceTime,
-                        currentModel = currentModel,
-                        currentDelegate = currentDelegate,
-                        sharedViewModel = sharedViewModel,
-                        navController = navController,
-                        activity = activity
-                    )
-                }
-            }
-        )
-
-        // 설정 적용
-        staticDetector.currentModel = currentModel
-        staticDetector.currentDelegate = currentDelegate
-        staticDetector.threshold = threshold
-        staticDetector.numThreads = numThreads
-        staticDetector.maxResults = maxResults
-
-        // 추론 실행
-        staticDetector.detect(bitmap, 0)
-    }
 
     // --- 공통 결과 처리 함수 (그리기 및 이동) ---
     private fun handleAnalysisResult(
         bitmap: Bitmap,
         results: List<ObjectDetection>,
         inferenceTime: Long,
-        currentModel: Int,
         currentDelegate: Int,
         sharedViewModel: SharedViewModel,
         navController: NavController,
         activity: Activity?
     ) {
-        val modelName = getModelName(currentModel)
+        val modelName = getModelName()
         val delegateName = getDelegateName(currentDelegate)
         val debugInfo = "Model: $modelName | Dev: $delegateName | Time: ${inferenceTime}ms"
 
@@ -265,15 +195,8 @@ class CaptureTransferHelper(private val context: Context) {
         } catch (e: Exception) { Log.e(TAG, "Navigation failed", e) }
     }
 
-    private fun getModelName(modelId: Int): String {
-        return when (modelId) {
-            0 -> "MobileNet V1"
-            1 -> "EfficientDet Lite0"
-            2 -> "EfficientDet Lite1"
-            3 -> "EfficientDet Lite2"
-            4 -> "YOLO v11" // [수정] YOLO 이름 추가
-            else -> "Unknown"
-        }
+    private fun getModelName(): String {
+        return "YOLO v11"
     }
 
     private fun getDelegateName(delegateId: Int): String {
