@@ -27,8 +27,6 @@ import org.tensorflow.lite.examples.objectdetection.ReferenceDoc
 import org.tensorflow.lite.examples.objectdetection.SharedViewModel
 import org.tensorflow.lite.examples.objectdetection.TariffInfo
 
-
-// Sealed class to represent different message types in the chat
 sealed class ChatMessage {
     data class UserQuestion(val question: String) : ChatMessage()
     data class BotResponse(val response: ChatResponse) : ChatMessage()
@@ -41,14 +39,16 @@ class ChatbotFragment : Fragment() {
     private val sharedViewModel: SharedViewModel by activityViewModels()
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
+                // 요청하신 테마 적용
                 HSChatbotTheme {
-                    ChatScreen(sharedViewModel = sharedViewModel)
+                    // 배경색 등을 명시적으로 지정하여 테마가 잘 보이게 함
+                    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                        ChatScreen(sharedViewModel = sharedViewModel)
+                    }
                 }
             }
         }
@@ -59,26 +59,31 @@ class ChatbotFragment : Fragment() {
 fun ChatScreen(sharedViewModel: SharedViewModel) {
     val capturedImage by sharedViewModel.capturedImage.observeAsState()
     val detectedLabels by sharedViewModel.detectedLabels.observeAsState()
+
     var text by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
-
     var chatHistory by remember { mutableStateOf<List<ChatMessage>>(emptyList()) }
 
     fun handleAsk(question: String) {
         if (question.isNotBlank() && chatHistory.lastOrNull() !is ChatMessage.Loading) {
             coroutineScope.launch {
                 chatHistory = chatHistory + ChatMessage.UserQuestion(question) + ChatMessage.Loading
+
                 val result = ApiService.askQuestion(question)
+
+                chatHistory = chatHistory.dropLast(1) // Remove Loading
+
                 result.onSuccess { response ->
-                    chatHistory = chatHistory.dropLast(1) + ChatMessage.BotResponse(response)
+                    chatHistory = chatHistory + ChatMessage.BotResponse(response)
                 }.onFailure { error ->
-                    chatHistory = chatHistory.dropLast(1) + ChatMessage.Error("An error occurred: ${error.message}")
+                    chatHistory = chatHistory + ChatMessage.Error("Error: ${error.localizedMessage}")
                 }
             }
         }
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        // 1. 이미지 표시 영역
         capturedImage?.let {
             Image(
                 bitmap = it.asImageBitmap(),
@@ -90,11 +95,9 @@ fun ChatScreen(sharedViewModel: SharedViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
         }
 
+        // 2. 감지된 라벨 버튼
         detectedLabels?.let { labels ->
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(labels) { label ->
                     Button(onClick = { handleAsk(label) }) {
                         Text(text = label)
@@ -104,51 +107,43 @@ fun ChatScreen(sharedViewModel: SharedViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Chat history
+        // 3. 채팅 리스트
         LazyColumn(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             items(chatHistory) { message ->
                 when (message) {
                     is ChatMessage.UserQuestion -> UserQuestionCard(message.question)
                     is ChatMessage.BotResponse -> BotResponseCards(message.response)
                     is ChatMessage.Error -> ErrorCard(message.message)
-                    is ChatMessage.Loading -> {
-                        Box(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
+                    is ChatMessage.Loading -> Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Input field
+        // 4. 입력창
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TextField(
+            OutlinedTextField(
                 value = text,
                 onValueChange = { text = it },
                 modifier = Modifier.weight(1f),
-                placeholder = { Text("Ask a question") },
+                placeholder = { Text("Ask anything...") },
                 singleLine = true
             )
             Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = {
-                    if (text.isNotBlank()) {
-                        handleAsk(text)
-                        text = "" // Clear after sending
-                    }
+                    handleAsk(text)
+                    text = ""
                 },
-                enabled = chatHistory.lastOrNull() !is ChatMessage.Loading
+                enabled = text.isNotBlank() && chatHistory.lastOrNull() !is ChatMessage.Loading
             ) {
                 Text("Send")
             }
@@ -158,18 +153,14 @@ fun ChatScreen(sharedViewModel: SharedViewModel) {
 
 @Composable
 fun UserQuestionCard(question: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End
-    ) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
         Card(
-            modifier = Modifier.fillMaxWidth(0.8f),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         ) {
             Text(
                 text = question,
-                modifier = Modifier.padding(16.dp),
-                style = MaterialTheme.typography.bodyLarge
+                modifier = Modifier.padding(12.dp),
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
     }
@@ -177,78 +168,54 @@ fun UserQuestionCard(question: String) {
 
 @Composable
 fun BotResponseCards(response: ChatResponse) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Start
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(end = 40.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(0.8f),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            if (response.explanation != null) {
-                InfoCard("Explanation", response.explanation)
-            }
-            if (response.preliminaryHsCode != null) {
-                InfoCard(
-                    "Preliminary Classification",
-                    "HS Code: ${response.preliminaryHsCode}\nReason: ${response.preliminaryReason ?: "N/A"}"
-                )
-            }
-            if (!response.tariffInfo.isNullOrEmpty()) {
-                TariffInfoCard(response.effectiveHsCode, response.tariffInfo)
-            }
-            if (!response.referenceDocs.isNullOrEmpty()) {
-                ReferenceDocsCard(response.referenceDocs)
+        // Explanation
+        if (!response.explanation.isNullOrBlank()) {
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text("🤖 Answer", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(response.explanation)
+                }
             }
         }
-    }
-}
 
+        // HS Code Info
+        if (!response.preliminaryHsCode.isNullOrBlank()) {
+            Card {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text("🔍 Estimated HS Code", fontWeight = FontWeight.Bold)
+                    Text(response.preliminaryHsCode, color = MaterialTheme.colorScheme.primary)
+                }
+            }
+        }
 
-@Composable
-fun ErrorCard(message: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
-    ) {
-        Text(
-            text = message,
-            modifier = Modifier.padding(16.dp),
-            color = MaterialTheme.colorScheme.onErrorContainer
-        )
-    }
-}
+        // Tariff Info
+        if (!response.tariffInfo.isNullOrEmpty()) {
+            TariffInfoCard(response.tariffInfo)
+        }
 
-@Composable
-fun InfoCard(title: String, content: String) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = content, style = MaterialTheme.typography.bodyMedium)
+        // Docs
+        if (!response.referenceDocs.isNullOrEmpty()) {
+            ReferenceDocsCard(response.referenceDocs)
         }
     }
 }
 
 @Composable
-fun TariffInfoCard(effectiveCode: String?, tariffs: List<TariffInfo>) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "Tariff Information (Based on HS Code: ${effectiveCode ?: "N/A"})",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+fun TariffInfoCard(tariffs: List<TariffInfo>) {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text("📋 Tariff Details", fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
-            tariffs.forEachIndexed { index, tariff ->
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    Text("Code: ${tariff.itemNumber ?: "N/A"}", fontWeight = FontWeight.SemiBold)
-                    Text("Name: ${tariff.itemName ?: "N/A"}", style = MaterialTheme.typography.bodySmall)
-                    Text("Rate: ${tariff.rate ?: "N/A"}", style = MaterialTheme.typography.bodySmall)
-                }
-                if (index < tariffs.lastIndex) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                }
+            tariffs.forEach { tariff ->
+                Text("• Code: ${tariff.itemNumber ?: "-"}")
+                Text("• Name: ${tariff.itemName ?: "-"}")
+                Text("• Rate: ${tariff.rate ?: "-"}", fontWeight = FontWeight.Bold)
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
             }
         }
     }
@@ -256,23 +223,27 @@ fun TariffInfoCard(effectiveCode: String?, tariffs: List<TariffInfo>) {
 
 @Composable
 fun ReferenceDocsCard(docs: List<ReferenceDoc>) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = "Reference Documents", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
-            docs.forEachIndexed { index, doc ->
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    Text("Source: ${doc.source ?: "N/A"}", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
-                    Text(
-                        doc.contentSnippet ?: "",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                if (index < docs.lastIndex) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                }
+    Card {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text("📚 References", fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(4.dp))
+            docs.take(2).forEach { doc ->
+                Text("[${doc.source}]", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                Text(
+                    doc.contentSnippet ?: "",
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 3,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(4.dp))
             }
         }
+    }
+}
+
+@Composable
+fun ErrorCard(message: String) {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
+        Text(text = message, modifier = Modifier.padding(12.dp), color = MaterialTheme.colorScheme.onErrorContainer)
     }
 }
