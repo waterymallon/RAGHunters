@@ -54,6 +54,14 @@ class MainActivity : AppCompatActivity() {
                         // 두 번째 탭: 챗봇으로 이동
                         navController.navigate(R.id.chatbot_fragment)
                     }
+                    2 -> {
+                        // 세 번째 탭: History로 이동
+                        navController.navigate(R.id.history_fragment)
+                    }
+                    3 -> {
+                        // 네 번째 탭: DB로 이동
+                        navController.navigate(R.id.db_fragment)
+                    }
                 }
             }
             override fun onTabUnselected(tab: TabLayout.Tab?) {}

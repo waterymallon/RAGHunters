@@ -42,4 +42,14 @@
         android:name="org.tensorflow.lite.examples.objectdetection.fragments.ChatbotFragment"
         android:label="ChatbotFragment" />
 
+    <fragment
+        android:id="@+id/history_fragment"
+        android:name="org.tensorflow.lite.examples.objectdetection.fragments.HistoryFragment"
+        android:label="HistoryFragment" />
+
+    <fragment
+        android:id="@+id/db_fragment"
+        android:name="org.tensorflow.lite.examples.objectdetection.fragments.DBFragment"
+        android:label="DBFragment" />
+
 </navigation>
