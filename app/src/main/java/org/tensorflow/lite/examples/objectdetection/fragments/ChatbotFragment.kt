@@ -20,23 +20,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import kotlinx.coroutines.launch
-import org.tensorflow.lite.examples.objectdetection.ApiService
+import androidx.compose.runtime.collectAsState
 import org.tensorflow.lite.examples.objectdetection.ChatResponse
 import org.tensorflow.lite.examples.objectdetection.ReferenceDoc
 import org.tensorflow.lite.examples.objectdetection.SharedViewModel
 import org.tensorflow.lite.examples.objectdetection.TariffInfo
+import org.tensorflow.lite.examples.objectdetection.fragments.ChatMessage
+import org.tensorflow.lite.examples.objectdetection.fragments.ChatbotViewModel
 
-sealed class ChatMessage {
-    data class UserQuestion(val question: String) : ChatMessage()
-    data class BotResponse(val response: ChatResponse) : ChatMessage()
-    data class Error(val message: String) : ChatMessage()
-    object Loading : ChatMessage()
-}
+
 
 class ChatbotFragment : Fragment() {
 
     private val sharedViewModel: SharedViewModel by activityViewModels()
+    private val chatbotViewModel: ChatbotViewModel by activityViewModels {
+        ChatbotViewModel.ChatbotViewModelFactory(requireActivity().application, sharedViewModel)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -47,7 +46,7 @@ class ChatbotFragment : Fragment() {
                 HSChatbotTheme {
                     // 배경색 등을 명시적으로 지정하여 테마가 잘 보이게 함
                     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                        ChatScreen(sharedViewModel = sharedViewModel)
+                        ChatScreen(chatbotViewModel = chatbotViewModel)
                     }
                 }
             }
@@ -56,30 +55,17 @@ class ChatbotFragment : Fragment() {
 }
 
 @Composable
-fun ChatScreen(sharedViewModel: SharedViewModel) {
-    val capturedImage by sharedViewModel.capturedImage.observeAsState()
-    val detectedLabels by sharedViewModel.detectedLabels.observeAsState()
+fun ChatScreen(chatbotViewModel: ChatbotViewModel) {
+    val capturedImage by chatbotViewModel.capturedImage.collectAsState()
+    val detectedLabels by chatbotViewModel.detectedLabels.collectAsState()
+    val chatHistory by chatbotViewModel.chatHistory.collectAsState()
 
     var text by remember { mutableStateOf("") }
-    val coroutineScope = rememberCoroutineScope()
-    var chatHistory by remember { mutableStateOf<List<ChatMessage>>(emptyList()) }
+
+
 
     fun handleAsk(question: String) {
-        if (question.isNotBlank() && chatHistory.lastOrNull() !is ChatMessage.Loading) {
-            coroutineScope.launch {
-                chatHistory = chatHistory + ChatMessage.UserQuestion(question) + ChatMessage.Loading
-
-                val result = ApiService.askQuestion(question)
-
-                chatHistory = chatHistory.dropLast(1) // Remove Loading
-
-                result.onSuccess { response ->
-                    chatHistory = chatHistory + ChatMessage.BotResponse(response)
-                }.onFailure { error ->
-                    chatHistory = chatHistory + ChatMessage.Error("Error: ${error.localizedMessage}")
-                }
-            }
-        }
+        chatbotViewModel.askQuestion(question)
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {

@@ -45,7 +45,20 @@
     <fragment
         android:id="@+id/history_fragment"
         android:name="org.tensorflow.lite.examples.objectdetection.fragments.HistoryFragment"
-        android:label="HistoryFragment" />
+        android:label="HistoryFragment" >
+        <action
+            android:id="@+id/action_history_fragment_to_history_detail_fragment"
+            app:destination="@id/history_detail_fragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/history_detail_fragment"
+        android:name="org.tensorflow.lite.examples.objectdetection.fragments.HistoryDetailFragment"
+        android:label="HistoryDetailFragment" >
+        <argument
+            android:name="sessionId"
+            app:argType="long" />
+    </fragment>
 
     <fragment
         android:id="@+id/db_fragment"
