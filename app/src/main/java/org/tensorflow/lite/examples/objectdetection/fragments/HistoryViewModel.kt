@@ -20,6 +20,8 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
     private val gson = Gson()
 
     val allSessions: LiveData<List<HistoryListItem>>
+    private val _plotData = MutableLiveData<Map<String, Int>>()
+    val plotData: LiveData<Map<String, Int>> = _plotData
 
     init {
         val chatHistoryDao = AppDatabase.getDatabase(application).chatHistoryDao()
@@ -57,6 +59,31 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
                 emit(listItems)
             }
         }.asLiveData()
+
+        viewModelScope.launch {
+            loadPlotData()
+        }
+    }
+
+    private suspend fun loadPlotData() {
+        val allBotMessages = repository.getAllBotMessageContents()
+        val allTariffs = mutableListOf<org.tensorflow.lite.examples.objectdetection.TariffInfo>()
+
+        allBotMessages.forEach { content ->
+            try {
+                val chatResponse = gson.fromJson(content, ChatResponse::class.java)
+                chatResponse.tariffInfo?.let { allTariffs.addAll(it) }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        val codeCounts = allTariffs
+            .mapNotNull { it.itemNumber?.take(4) } // Take first 4 digits
+            .groupingBy { it }
+            .eachCount()
+
+        _plotData.postValue(codeCounts)
     }
 
     fun deleteSession(item: HistoryListItem) {

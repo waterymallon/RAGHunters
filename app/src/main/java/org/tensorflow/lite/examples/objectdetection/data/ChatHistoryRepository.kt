@@ -53,6 +53,10 @@ class ChatHistoryRepository(
         return chatHistoryDao.getAllBotMessageContents(sessionId)
     }
 
+    suspend fun getAllBotMessageContents(): List<String> {
+        return chatHistoryDao.getAllBotMessageContentsForAllSessions()
+    }
+
     suspend fun deleteSession(session: ChatSession) = withContext(Dispatchers.IO) {
         // Delete the image file from internal storage if it exists
         session.imagePath?.let { path ->

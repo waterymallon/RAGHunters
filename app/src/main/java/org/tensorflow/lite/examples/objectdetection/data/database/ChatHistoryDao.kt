@@ -36,6 +36,9 @@ interface ChatHistoryDao {
     @Query("SELECT content FROM chat_messages WHERE sessionId = :sessionId AND messageType = 'BOT' ORDER BY timestamp ASC")
     suspend fun getAllBotMessageContents(sessionId: Long): List<String>
 
+    @Query("SELECT content FROM chat_messages WHERE messageType = 'BOT' ORDER BY timestamp ASC")
+    suspend fun getAllBotMessageContentsForAllSessions(): List<String>
+
     @Delete
     suspend fun deleteSession(session: ChatSession)
 
