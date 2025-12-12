@@ -33,6 +33,9 @@ interface ChatHistoryDao {
     @Query("SELECT * FROM chat_messages WHERE sessionId = :sessionId ORDER BY timestamp ASC")
     fun getMessagesForSession(sessionId: Long): Flow<List<ChatMessageEntity>>
 
+    @Query("SELECT content FROM chat_messages WHERE sessionId = :sessionId AND messageType = 'BOT' ORDER BY timestamp ASC")
+    suspend fun getAllBotMessageContents(sessionId: Long): List<String>
+
     @Delete
     suspend fun deleteSession(session: ChatSession)
 

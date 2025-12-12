@@ -42,18 +42,18 @@ class HistoryFragment : Fragment() {
 
     private fun setupRecyclerView() {
         chatSessionAdapter = ChatSessionAdapter(
-            onItemClicked = { session ->
+            onItemClicked = { item ->
                 // Handle item click, navigate to detail fragment
-                val action = HistoryFragmentDirections.actionHistoryFragmentToHistoryDetailFragment(session.id)
+                val action = HistoryFragmentDirections.actionHistoryFragmentToHistoryDetailFragment(item.session.id)
                 findNavController().navigate(action)
             },
-            onDeleteClicked = { session ->
+            onDeleteClicked = { item ->
                 // Show confirmation dialog before deleting
-                android.app.AlertDialog.Builder(requireContext())
+                AlertDialog.Builder(requireContext())
                     .setTitle("Delete Session")
                     .setMessage("Are you sure you want to delete this session?")
                     .setPositiveButton("Delete") { _, _ ->
-                        historyViewModel.deleteSession(session)
+                        historyViewModel.deleteSession(item)
                     }
                     .setNegativeButton("Cancel", null)
                     .show()

@@ -1,30 +1,67 @@
 package org.tensorflow.lite.examples.objectdetection.fragments
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
+import com.google.gson.Gson
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import org.tensorflow.lite.examples.objectdetection.ChatResponse
 import org.tensorflow.lite.examples.objectdetection.data.ChatHistoryRepository
 import org.tensorflow.lite.examples.objectdetection.data.database.AppDatabase
 import org.tensorflow.lite.examples.objectdetection.data.model.ChatSession
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+
+@OptIn(ExperimentalCoroutinesApi::class)
 class HistoryViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: ChatHistoryRepository
+    private val gson = Gson()
+
+    val allSessions: LiveData<List<HistoryListItem>>
 
     init {
         val chatHistoryDao = AppDatabase.getDatabase(application).chatHistoryDao()
         repository = ChatHistoryRepository(chatHistoryDao, application)
+
+        allSessions = repository.getAllChatSessions().flatMapLatest { sessions ->
+            flow {
+                val listItems = sessions.map { session ->
+                    val botMessageContents = repository.getAllBotMessageContents(session.id)
+                    val allTariffs = mutableListOf<org.tensorflow.lite.examples.objectdetection.TariffInfo>()
+
+                    botMessageContents.forEach { content ->
+                        try {
+                            val chatResponse = gson.fromJson(content, ChatResponse::class.java)
+                            chatResponse.tariffInfo?.let { allTariffs.addAll(it) }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+
+                    val tariffInfoTitle = allTariffs
+                        .take(3)
+                        .mapNotNull { tariff ->
+                            if (tariff.itemNumber != null && tariff.itemName != null && tariff.rate != null) {
+                                "${tariff.itemNumber} ${tariff.itemName} ${tariff.rate}"
+                            } else {
+                                null
+                            }
+                        }
+                        .joinToString("\n")
+                        .takeIf { it.isNotBlank() }
+
+                    HistoryListItem(session, allTariffs, tariffInfoTitle)
+                }
+                emit(listItems)
+            }
+        }.asLiveData()
     }
 
-    val allSessions = repository.getAllChatSessions().asLiveData()
-
-    fun deleteSession(session: ChatSession) {
+    fun deleteSession(item: HistoryListItem) {
         viewModelScope.launch {
-            repository.deleteSession(session)
+            repository.deleteSession(item.session)
         }
     }
 

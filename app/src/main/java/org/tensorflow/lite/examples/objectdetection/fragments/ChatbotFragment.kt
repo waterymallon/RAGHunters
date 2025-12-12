@@ -53,6 +53,7 @@ class ChatbotFragment : Fragment() {
                             detectedLabels = detectedLabels,
                             chatHistory = chatHistory,
                             onAskQuestion = { question -> chatbotViewModel.askQuestion(question) },
+                            onStartNewTextSession = { chatbotViewModel.startNewTextSession() },
                             isReadOnly = false
                         )
                     }
@@ -68,6 +69,7 @@ fun ChatScreen(
     detectedLabels: List<String>?,
     chatHistory: List<ChatMessage>,
     onAskQuestion: (String) -> Unit,
+    onStartNewTextSession: () -> Unit,
     isReadOnly: Boolean
 ) {
     var text by remember { mutableStateOf("") }
@@ -118,10 +120,22 @@ fun ChatScreen(
             }
         }
 
+        // 5. New Chat Button
+        if (chatHistory.isNotEmpty() && !isReadOnly) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Button(onClick = onStartNewTextSession) {
+                    Text("Start New Chat")
+                }
+            }
+        }
+
         // 4. 입력창 (only show if not read-only)
         if (!isReadOnly) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(

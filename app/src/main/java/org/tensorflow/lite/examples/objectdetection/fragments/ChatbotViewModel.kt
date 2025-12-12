@@ -60,52 +60,9 @@ class ChatbotViewModel(application: Application, private val sharedViewModel: Sh
 
     private fun handleNewCapture() {
         viewModelScope.launch {
-            // Save current session if valid and has chat messages
-            if (_capturedImage.value != null && !(_detectionInfo.value.isNullOrBlank()) &&
-                !(_detectedLabels.value.isNullOrEmpty()) && _chatHistory.value.isNotEmpty()) {
+            saveCurrentSession()
 
-                val currentImage = _capturedImage.value!!
-                val currentDetectionInfo = _detectionInfo.value!!
-                val currentDetectedLabels = _detectedLabels.value!!
-                val currentChatHistory = _chatHistory.value.filter { it !is ChatMessage.Loading }
-
-                val chatMessageEntities = currentChatHistory.map { chatMessage ->
-                    when (chatMessage) {
-                        is ChatMessage.UserQuestion -> ChatMessageEntity(
-                            sessionId = 0,
-                            messageType = "USER",
-                            content = chatMessage.question,
-                            timestamp = System.currentTimeMillis()
-                        )
-                        is ChatMessage.BotResponse -> ChatMessageEntity(
-                            sessionId = 0,
-                            messageType = "BOT",
-                            content = gson.toJson(chatMessage.response),
-                            timestamp = System.currentTimeMillis()
-                        )
-                        is ChatMessage.Error -> ChatMessageEntity(
-                            sessionId = 0,
-                            messageType = "ERROR",
-                            content = chatMessage.message,
-                            timestamp = System.currentTimeMillis()
-                        )
-                        ChatMessage.Loading -> ChatMessageEntity( // Should not happen due to filter
-                            sessionId = 0,
-                            messageType = "LOADING",
-                            content = "",
-                            timestamp = System.currentTimeMillis()
-                        )
-                    }
-                }
-                repository.saveChatSession(
-                    imageBitmap = currentImage,
-                    analysisInfo = currentDetectionInfo,
-                    detectedLabels = currentDetectedLabels,
-                    chatMessages = chatMessageEntities
-                )
-            }
-
-            // Clear current state and load new data
+            // Clear current state and load new data from the camera capture
             _capturedImage.value = sharedViewModel.capturedImage.value
             _detectionInfo.value = sharedViewModel.detectionInfo.value
             _detectedLabels.value = sharedViewModel.detectedLabels.value
@@ -114,6 +71,51 @@ class ChatbotViewModel(application: Application, private val sharedViewModel: Sh
             // Reset the flag in SharedViewModel
             sharedViewModel.setNewCaptureInitiated(false)
         }
+    }
+
+    fun startNewTextSession() {
+        viewModelScope.launch {
+            saveCurrentSession()
+
+            // Clear all state for a fresh text-only session
+            _capturedImage.value = null
+            _detectionInfo.value = null
+            _detectedLabels.value = null
+            _chatHistory.value = emptyList()
+        }
+    }
+
+    private suspend fun saveCurrentSession() {
+        if (_chatHistory.value.isEmpty()) {
+            return // Don't save if there are no messages
+        }
+
+        val currentChatHistory = _chatHistory.value.filter { it !is ChatMessage.Loading }
+        if (currentChatHistory.isEmpty()) {
+            return // Don't save if only contains a loading message
+        }
+
+        val chatMessageEntities = currentChatHistory.map { chatMessage ->
+            when (chatMessage) {
+                is ChatMessage.UserQuestion -> ChatMessageEntity(
+                    sessionId = 0, messageType = "USER", content = chatMessage.question, timestamp = System.currentTimeMillis()
+                )
+                is ChatMessage.BotResponse -> ChatMessageEntity(
+                    sessionId = 0, messageType = "BOT", content = gson.toJson(chatMessage.response), timestamp = System.currentTimeMillis()
+                )
+                is ChatMessage.Error -> ChatMessageEntity(
+                    sessionId = 0, messageType = "ERROR", content = chatMessage.message, timestamp = System.currentTimeMillis()
+                )
+                ChatMessage.Loading -> throw IllegalStateException("Loading message should have been filtered out")
+            }
+        }
+
+        repository.saveChatSession(
+            imageBitmap = _capturedImage.value,
+            analysisInfo = _detectionInfo.value,
+            detectedLabels = _detectedLabels.value,
+            chatMessages = chatMessageEntities
+        )
     }
 
     fun askQuestion(question: String) {

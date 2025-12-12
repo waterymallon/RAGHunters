@@ -18,12 +18,12 @@ class ChatHistoryRepository(
 ) {
 
     suspend fun saveChatSession(
-        imageBitmap: Bitmap,
-        analysisInfo: String,
-        detectedLabels: List<String>,
+        imageBitmap: Bitmap?,
+        analysisInfo: String?,
+        detectedLabels: List<String>?,
         chatMessages: List<ChatMessageEntity>
     ): Long = withContext(Dispatchers.IO) {
-        val imagePath = saveBitmapToInternalStorage(imageBitmap)
+        val imagePath = imageBitmap?.let { saveBitmapToInternalStorage(it) }
         val session = ChatSession(
             imagePath = imagePath,
             analysisInfo = analysisInfo,
@@ -49,15 +49,21 @@ class ChatHistoryRepository(
         return chatHistoryDao.getMessagesForSession(sessionId)
     }
 
+    suspend fun getAllBotMessageContents(sessionId: Long): List<String> {
+        return chatHistoryDao.getAllBotMessageContents(sessionId)
+    }
+
     suspend fun deleteSession(session: ChatSession) = withContext(Dispatchers.IO) {
-        // Delete the image file from internal storage
-        try {
-            val imageFile = File(session.imagePath)
-            if (imageFile.exists()) {
-                imageFile.delete()
+        // Delete the image file from internal storage if it exists
+        session.imagePath?.let { path ->
+            try {
+                val imageFile = File(path)
+                if (imageFile.exists()) {
+                    imageFile.delete()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace() // Log the error
             }
-        } catch (e: Exception) {
-            e.printStackTrace() // Log the error
         }
 
         // Delete the session from the database

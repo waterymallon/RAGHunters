@@ -79,6 +79,7 @@ private fun HistoryDetailScreen(viewModel: HistoryDetailViewModel) {
         detectedLabels = session?.detectedLabels,
         chatHistory = chatHistory,
         onAskQuestion = {}, // No action in read-only mode
+        onStartNewTextSession = {}, // No action in read-only mode
         isReadOnly = true
     )
 }

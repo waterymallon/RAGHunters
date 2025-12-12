@@ -44,15 +44,6 @@
                     tools:text="2025-12-13 10:30 AM" />
 
                 <TextView
-                    android:id="@+id/session_analysis_info"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:maxLines="2"
-                    android:ellipsize="end"
-                    android:textSize="12sp"
-                    tools:text="Detected: cat (98%), dog (70%). Inference time: 120ms." />
-
-                <TextView
                     android:id="@+id/session_labels"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -61,6 +52,16 @@
                     android:textSize="12sp"
                     android:textColor="?android:attr/textColorSecondary"
                     tools:text="Labels: cat, dog" />
+
+                <TextView
+                    android:id="@+id/session_tariff_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:maxLines="3"
+                    android:ellipsize="end"
+                    android:textSize="11sp"
+                    tools:text="8517.12 - item - 0%\n8517.13 - item - 8%" />
 
             </LinearLayout>
         </LinearLayout>
