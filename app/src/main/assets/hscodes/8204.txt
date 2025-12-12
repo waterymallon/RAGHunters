@@ -1,0 +1,15 @@
+82.04 - 수동식 스패너(spanner)와 렌치(wrench)(토크미터렌치)를 포함하나 탭렌치(tap wrench)는 제외한다], 호환성 스패너소켓(spanner socket)(손잡이가 달린 것인지에 상관없다)
+
+- 수동식 스패너(spanner)와 렌치(wrench)
+
+8204.11 - 조절할 수 없는 것
+
+8204.12 - 조절할 수 있는 것
+
+8204.20 - 호환성 스패너소켓(spanner socket)(손잡이가 있는 것인지에 상관없다)
+
+이 호에는 다음의 수공구를 포함한다.
+
+(1) 수동식 스패너(spanner)와 렌치(wrench)[예: 고정식이나 조정식의 조오(jaw)를 갖춘 것 ; 소켓스패너(socket spanner)ㆍ박스스패너(box spanner)와 톱니바퀴식의 스패너(ratchet spanner) ; 크랭크 핸들 스패너(crank handle spanner)] ; 차량용ㆍ코치스크루용(coach screw)ㆍ급수전용이나 파이프용의 렌치(wrench)와 스패너(spanner)[체인형의 파이프 렌치(pipe wrench)를 포함한다] ; 토크미터렌치(torque meter wrench). 다만, 이 호에는 탭렌치(tap wrench)는 제외한다(제8205호).
+
+(2) 호환성 스패너소켓(spanner socket)[손잡이가 달린 것인지에 상관없으며, 드라이브(drive)와 익스텐션(extension)을 포함한다]
