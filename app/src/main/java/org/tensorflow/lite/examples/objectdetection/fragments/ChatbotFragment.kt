@@ -42,11 +42,19 @@ class ChatbotFragment : Fragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                // 요청하신 테마 적용
+                val capturedImage by chatbotViewModel.capturedImage.collectAsState()
+                val detectedLabels by chatbotViewModel.detectedLabels.collectAsState()
+                val chatHistory by chatbotViewModel.chatHistory.collectAsState()
+
                 HSChatbotTheme {
-                    // 배경색 등을 명시적으로 지정하여 테마가 잘 보이게 함
                     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                        ChatScreen(chatbotViewModel = chatbotViewModel)
+                        ChatScreen(
+                            capturedImage = capturedImage,
+                            detectedLabels = detectedLabels,
+                            chatHistory = chatHistory,
+                            onAskQuestion = { question -> chatbotViewModel.askQuestion(question) },
+                            isReadOnly = false
+                        )
                     }
                 }
             }
@@ -55,18 +63,14 @@ class ChatbotFragment : Fragment() {
 }
 
 @Composable
-fun ChatScreen(chatbotViewModel: ChatbotViewModel) {
-    val capturedImage by chatbotViewModel.capturedImage.collectAsState()
-    val detectedLabels by chatbotViewModel.detectedLabels.collectAsState()
-    val chatHistory by chatbotViewModel.chatHistory.collectAsState()
-
+fun ChatScreen(
+    capturedImage: android.graphics.Bitmap?,
+    detectedLabels: List<String>?,
+    chatHistory: List<ChatMessage>,
+    onAskQuestion: (String) -> Unit,
+    isReadOnly: Boolean
+) {
     var text by remember { mutableStateOf("") }
-
-
-
-    fun handleAsk(question: String) {
-        chatbotViewModel.askQuestion(question)
-    }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         // 1. 이미지 표시 영역
@@ -85,7 +89,10 @@ fun ChatScreen(chatbotViewModel: ChatbotViewModel) {
         detectedLabels?.let { labels ->
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(labels) { label ->
-                    Button(onClick = { handleAsk(label) }) {
+                    Button(
+                        onClick = { onAskQuestion(label) },
+                        enabled = !isReadOnly // Disable button in read-only mode
+                    ) {
                         Text(text = label)
                     }
                 }
@@ -111,27 +118,29 @@ fun ChatScreen(chatbotViewModel: ChatbotViewModel) {
             }
         }
 
-        // 4. 입력창
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
-                modifier = Modifier.weight(1f),
-                placeholder = { Text("Ask anything...") },
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(
-                onClick = {
-                    handleAsk(text)
-                    text = ""
-                },
-                enabled = text.isNotBlank() && chatHistory.lastOrNull() !is ChatMessage.Loading
+        // 4. 입력창 (only show if not read-only)
+        if (!isReadOnly) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Send")
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text("Ask anything...") },
+                    singleLine = true
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = {
+                        onAskQuestion(text)
+                        text = ""
+                    },
+                    enabled = text.isNotBlank() && chatHistory.lastOrNull() !is ChatMessage.Loading
+                ) {
+                    Text("Send")
+                }
             }
         }
     }

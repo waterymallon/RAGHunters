@@ -5,24 +5,26 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.TextView
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.tensorflow.lite.examples.objectdetection.ChatResponse
-import org.tensorflow.lite.examples.objectdetection.R
-import org.tensorflow.lite.examples.objectdetection.databinding.FragmentHistoryDetailBinding
+import org.tensorflow.lite.examples.objectdetection.data.model.ChatMessageEntity
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class HistoryDetailFragment : Fragment() {
-
-    private var _binding: FragmentHistoryDetailBinding? = null
-    private val binding get() = _binding!!
 
     private val args: HistoryDetailFragmentArgs by navArgs()
     private val historyDetailViewModel: HistoryDetailViewModel by viewModels {
@@ -33,71 +35,50 @@ class HistoryDetailFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentHistoryDetailBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        observeViewModel()
-    }
-
-    private fun observeViewModel() {
-        historyDetailViewModel.session.observe(viewLifecycleOwner) { session ->
-            session?.let {
-                val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-                binding.detailTimestamp.text = "Session: ${dateFormat.format(Date(it.timestamp))}"
-
-                val imgFile = File(it.imagePath)
-                if (imgFile.exists()) {
-                    val myBitmap = BitmapFactory.decodeFile(imgFile.absolutePath)
-                    binding.detailImage.setImageBitmap(myBitmap)
-                } else {
-                    binding.detailImage.setImageResource(R.drawable.ic_placeholder_image) // Placeholder
+        return ComposeView(requireContext()).apply {
+            setContent {
+                HSChatbotTheme {
+                    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                        HistoryDetailScreen(viewModel = historyDetailViewModel)
+                    }
                 }
-
-                binding.detailAnalysisInfo.text = it.analysisInfo
-                binding.detailDetectedLabels.text = "Detected Labels: ${it.detectedLabels.joinToString(", ")}"
             }
         }
+    }
+}
 
-        historyDetailViewModel.messages.observe(viewLifecycleOwner) { messages ->
-            binding.chatLogContainer.removeAllViews()
-            messages.forEach { message ->
-                val messageView = TextView(context).apply {
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        setMargins(0, 8, 0, 0)
-                    }
-                    val formattedMessage = when (message.messageType) {
-                        "USER" -> "YOU: ${message.content}"
-                        "BOT" -> {
-                            val chatResponse = Gson().fromJson(message.content, ChatResponse::class.java)
-                            "BOT: ${chatResponse.explanation ?: "No explanation"}"
-                        }
-                        "ERROR" -> "ERROR: ${message.content}"
-                        else -> "UNKNOWN: ${message.content}"
-                    }
-                    text = formattedMessage
-                    // Basic styling for differentiation
-                    if (message.messageType == "USER") {
-                        textAlignment = View.TEXT_ALIGNMENT_VIEW_END
-                        setBackgroundResource(R.drawable.chat_bubble_user) // Need to create this drawable
-                    } else {
-                        textAlignment = View.TEXT_ALIGNMENT_VIEW_START
-                        setBackgroundResource(R.drawable.chat_bubble_bot) // Need to create this drawable
-                    }
-                }
-                binding.chatLogContainer.addView(messageView)
+@Composable
+private fun HistoryDetailScreen(viewModel: HistoryDetailViewModel) {
+    val session by viewModel.session.observeAsState()
+    val messages by viewModel.messages.observeAsState(emptyList())
+
+    // produceState will load the bitmap from the file path in a coroutine
+    val capturedImage by produceState<android.graphics.Bitmap?>(initialValue = null, session?.imagePath) {
+        session?.imagePath?.let { path ->
+            value = withContext(Dispatchers.IO) {
+                BitmapFactory.decodeFile(path)
             }
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    // Map ChatMessageEntity to ChatMessage
+    val chatHistory = messages.map { entity ->
+        when (entity.messageType) {
+            "USER" -> ChatMessage.UserQuestion(entity.content)
+            "BOT" -> {
+                val response = Gson().fromJson(entity.content, ChatResponse::class.java)
+                ChatMessage.BotResponse(response)
+            }
+            "ERROR" -> ChatMessage.Error(entity.content)
+            else -> ChatMessage.Error("Unknown message type")
+        }
     }
+
+    ChatScreen(
+        capturedImage = capturedImage,
+        detectedLabels = session?.detectedLabels,
+        chatHistory = chatHistory,
+        onAskQuestion = {}, // No action in read-only mode
+        isReadOnly = true
+    )
 }
