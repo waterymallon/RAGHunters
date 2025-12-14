@@ -27,12 +27,22 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/top_app_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            android:elevation="2dp"
+            app:title="RAG Hunters"
+            app:titleTextColor="@android:color/black" />
+
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/fragment_container"
             android:name="androidx.navigation.fragment.NavHostFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_above="@+id/tab_layout"
+            android:layout_below="@id/top_app_bar"
             android:background="@android:color/transparent"
             android:keepScreenOn="true"
             app:defaultNavHost="true"
@@ -45,8 +55,8 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:background="@color/toolbar_background"
-            app:tabIndicatorColor="@android:color/holo_orange_light"
-            app:tabSelectedTextColor="@android:color/holo_orange_light"
+            app:tabIndicatorColor="@android:color/holo_blue_light"
+            app:tabSelectedTextColor="@android:color/holo_blue_light"
             app:tabTextColor="@android:color/black">
 
             <com.google.android.material.tabs.TabItem

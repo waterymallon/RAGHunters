@@ -36,6 +36,8 @@ class MainActivity : AppCompatActivity() {
         activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(activityMainBinding.root)
 
+        setSupportActionBar(activityMainBinding.topAppBar)
+
         // 1. 네비게이션 컨트롤러 가져오기
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.fragment_container) as NavHostFragment
@@ -46,24 +48,24 @@ class MainActivity : AppCompatActivity() {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 when (tab?.position) {
                     0 -> {
-                        // 첫 번째 탭: 카메라로 이동
-                        // (이미 카메라면 이동 안 함, 스택 관리 등을 위해 popUpTo 사용 추천)
+                        supportActionBar?.title = "카메라"
                         navController.navigate(R.id.camera_fragment)
                     }
                     1 -> {
-                        // 두 번째 탭: 챗봇으로 이동
+                        supportActionBar?.title = "챗봇"
                         navController.navigate(R.id.chatbot_fragment)
                     }
                     2 -> {
-                        // 세 번째 탭: History로 이동
+                        supportActionBar?.title = "History"
                         navController.navigate(R.id.history_fragment)
                     }
                     3 -> {
-                        // 네 번째 탭: DB로 이동
+                        supportActionBar?.title = "DB"
                         navController.navigate(R.id.db_fragment)
                     }
                 }
             }
+
             override fun onTabUnselected(tab: TabLayout.Tab?) {}
             override fun onTabReselected(tab: TabLayout.Tab?) {}
         })

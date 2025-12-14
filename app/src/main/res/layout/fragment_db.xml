@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:iconifiedByDefault="false"
-        android:queryHint="Search by title or 6-digit code..." />
+        android:queryHint="2~6자리 코드로 검색" />
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -30,8 +30,8 @@
             android:id="@+id/doc_content_scroll_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="gone"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:visibility="gone">
 
             <TextView
                 android:id="@+id/doc_content_text_view"

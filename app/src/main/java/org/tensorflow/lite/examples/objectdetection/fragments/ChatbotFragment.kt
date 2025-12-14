@@ -27,6 +27,17 @@ import org.tensorflow.lite.examples.objectdetection.SharedViewModel
 import org.tensorflow.lite.examples.objectdetection.TariffInfo
 import org.tensorflow.lite.examples.objectdetection.fragments.ChatMessage
 import org.tensorflow.lite.examples.objectdetection.fragments.ChatbotViewModel
+import org.tensorflow.lite.examples.objectdetection.R
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.Icon
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+
 
 
 
@@ -36,7 +47,6 @@ class ChatbotFragment : Fragment() {
     private val chatbotViewModel: ChatbotViewModel by activityViewModels {
         ChatbotViewModel.ChatbotViewModelFactory(requireActivity().application, sharedViewModel)
     }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -63,6 +73,7 @@ class ChatbotFragment : Fragment() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
     capturedImage: android.graphics.Bitmap?,
@@ -73,6 +84,7 @@ fun ChatScreen(
     isReadOnly: Boolean
 ) {
     var text by remember { mutableStateOf("") }
+    val HoloBlueLight = Color(0xFF33B5E5)
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         // 1. 이미지 표시 영역
@@ -135,25 +147,42 @@ fun ChatScreen(
         // 4. 입력창 (only show if not read-only)
         if (!isReadOnly) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Ask anything...") },
-                    singleLine = true
+                    placeholder = { Text("질문을 입력하세요") },
+                    singleLine = true,
+                    shape = RoundedCornerShape(20.dp),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = HoloBlueLight,
+                        cursorColor = HoloBlueLight
+                    )
                 )
+
                 Spacer(modifier = Modifier.width(8.dp))
-                Button(
+
+                IconButton(
                     onClick = {
                         onAskQuestion(text)
                         text = ""
                     },
-                    enabled = text.isNotBlank() && chatHistory.lastOrNull() !is ChatMessage.Loading
+                    enabled = text.isNotBlank() && chatHistory.lastOrNull() !is ChatMessage.Loading,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(HoloBlueLight)
                 ) {
-                    Text("Send")
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_send),
+                        contentDescription = "Send",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
             }
         }
